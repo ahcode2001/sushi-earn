@@ -10,7 +10,6 @@
         :root { --primary: #00ffcc; --bg: #121212; --card: #1e1e1e; --text: #ffffff; --danger: #ff4757; --warning: #ffa502; --success: #2ed573; }
         body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; background-color: var(--bg); color: var(--text); margin: 0; padding: 0; padding-bottom: 70px; }
         
-        /* Updated Header with Flexbox for Logo */
         header { background: var(--card); padding: 20px; text-align: center; border-bottom: 1px solid #333; }
         .header-content { display: flex; align-items: center; justify-content: center; gap: 12px; }
         .header-logo { width: 36px; height: 36px; border-radius: 8px; object-fit: cover; }
@@ -38,11 +37,14 @@
         .nav-item.active { color: var(--primary); font-weight: bold; }
         
         .chart-container { position: relative; height: 250px; width: 100%; }
+        
+        /* Secondary button styles for backup actions */
+        .btn-outline { background: #2a2a2a; color: white; border: 1px solid var(--primary); }
+        .btn-outline-warning { background: #2a2a2a; color: white; border: 1px solid var(--warning); }
     </style>
 </head>
 <body>
 
-    <!-- Updated Header Section -->
     <header>
         <div class="header-content">
             <img src="icon-192.png" alt="Sushi earn logo" class="header-logo" id="header-logo">
@@ -102,7 +104,7 @@
                 <h2 style="margin-top:0;">Permit Management</h2>
                 <div class="input-group">
                     <label>Vehicle Plate</label>
-                    <input type="text" id="vehicle-plate" placeholder="e.g. ABC123" value="ABC123">
+                    <input type="text" id="vehicle-plate" placeholder="e.g. ABC1234" value="ABC1234">
                 </div>
                 <div class="input-group">
                     <label>PSV License Expiry Date</label>
@@ -120,6 +122,17 @@
 
         <!-- SETTINGS VIEW -->
         <div id="view-settings" class="view-section">
+            <div class="card">
+                <h2 style="margin-top:0;">Backup & Restore</h2>
+                <p style="font-size: 0.9rem; color: #aaa; margin-bottom: 15px;">Export your data to Excel (CSV) or restore a previous backup.</p>
+                
+                <button onclick="exportCSV()" class="btn-outline" style="margin-bottom: 10px;">📥 Export Data (CSV)</button>
+                
+                <!-- Hidden file input for triggering the file browser -->
+                <input type="file" id="csv-file-input" accept=".csv" style="display: none;" onchange="importCSV(event)">
+                <button onclick="triggerImport()" class="btn-outline-warning">📤 Restore Data (CSV)</button>
+            </div>
+
             <div class="card">
                 <h2 style="margin-top:0;">Data Management</h2>
                 <p style="font-size: 0.9rem; color: #aaa; margin-bottom: 15px;">Starting a new month? Clear your old earnings and expenses here. Your permit dates will remain saved.</p>
