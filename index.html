@@ -1,0 +1,134 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Gig Tracker</title>
+    <link rel="manifest" href="manifest.json">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        :root { --primary: #00ffcc; --bg: #121212; --card: #1e1e1e; --text: #ffffff; --danger: #ff4757; --warning: #ffa502; --success: #2ed573; }
+        body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; background-color: var(--bg); color: var(--text); margin: 0; padding: 0; padding-bottom: 70px; }
+        header { background: var(--card); padding: 20px; text-align: center; border-bottom: 1px solid #333; }
+        h1 { margin: 0; font-size: 1.5rem; color: var(--primary); }
+        
+        .container { padding: 20px; }
+        .view-section { display: none; }
+        .active-view { display: block; }
+        
+        .card { background: var(--card); padding: 20px; border-radius: 12px; margin-bottom: 15px; box-shadow: 0 4px 6px rgba(0,0,0,0.3); }
+        .input-group { margin-bottom: 15px; }
+        label { display: block; margin-bottom: 5px; font-size: 0.9rem; color: #aaa; }
+        input, select, button { width: 100%; padding: 12px; border-radius: 8px; border: none; box-sizing: border-box; font-size: 1rem; }
+        input, select { background: #2a2a2a; color: white; margin-bottom: 5px; color-scheme: dark; }
+        button { background: var(--primary); color: #000; font-weight: bold; cursor: pointer; margin-top: 10px; }
+        
+        .status-badge { font-size: 0.85rem; padding: 5px 10px; border-radius: 5px; display: inline-block; font-weight: bold; }
+        .status-neutral { background: #333; color: #aaa; }
+        .status-success { background: rgba(46, 213, 115, 0.2); color: var(--success); }
+        .status-warning { background: rgba(255, 165, 2, 0.2); color: var(--warning); border: 1px solid var(--warning); }
+        .status-danger { background: rgba(255, 71, 87, 0.2); color: var(--danger); border: 1px solid var(--danger); }
+        
+        /* Updated Navigation for 3 tabs */
+        .bottom-nav { position: fixed; bottom: 0; width: 100%; background: var(--card); display: flex; justify-content: space-around; padding: 15px 0; border-top: 1px solid #333; z-index: 100; }
+        .nav-item { color: #aaa; text-decoration: none; font-size: 0.9rem; text-align: center; width: 33.33%; cursor: pointer; }
+        .nav-item.active { color: var(--primary); font-weight: bold; }
+        
+        .chart-container { position: relative; height: 250px; width: 100%; }
+    </style>
+</head>
+<body>
+
+    <header>
+        <h1 id="header-title">Shift Tracker</h1>
+    </header>
+
+    <div class="container">
+        
+        <!-- DASHBOARD VIEW -->
+        <div id="view-dashboard" class="view-section active-view">
+            <div class="card">
+                <h2 style="margin-top:0;">Log Earning</h2>
+                <div class="input-group">
+                    <label>Trip / Shift Amount (RM)</label>
+                    <input type="number" id="earning-amount" step="0.10" placeholder="15.50">
+                </div>
+                <button onclick="saveEarning()">Save Earning</button>
+            </div>
+
+            <div class="card">
+                <h2 style="margin-top:0;">Log Parking / Expense</h2>
+                <div class="input-group">
+                    <label>Category</label>
+                    <select id="expense-type">
+                        <option value="smart_selangor">Smart Selangor Parking</option>
+                        <option value="flexi_parking">Flexi Parking</option>
+                        <option value="fuel">Fuel / Petrol</option>
+                        <option value="toll">Touch 'n Go / RFID</option>
+                    </select>
+                </div>
+                <div class="input-group">
+                    <label>Amount (RM)</label>
+                    <input type="number" id="expense-amount" step="0.10" placeholder="0.50">
+                </div>
+                <button onclick="saveExpense()">Save Expense</button>
+            </div>
+            
+            <div class="card">
+                <h2 style="margin-top:0;">Today's Summary</h2>
+                <p>Total Earnings: RM <span id="daily-earnings">0.00</span></p>
+                <p>Total Expenses: RM <span id="daily-expenses">0.00</span></p>
+                <p><strong>Net Profit: RM <span id="net-profit" style="color:var(--primary);">0.00</span></strong></p>
+            </div>
+
+            <div class="card">
+                <h2 style="margin-top:0;">7-Day Trend</h2>
+                <div class="chart-container">
+                    <canvas id="trendChart"></canvas>
+                </div>
+            </div>
+        </div>
+
+        <!-- LICENSES VIEW -->
+        <div id="view-licenses" class="view-section">
+            <div class="card">
+                <h2 style="margin-top:0;">Permit Management</h2>
+                <div class="input-group">
+                    <label>Vehicle Plate</label>
+                    <input type="text" id="vehicle-plate" placeholder="e.g. VY375" value="VY375">
+                </div>
+                <div class="input-group">
+                    <label>PSV License Expiry Date</label>
+                    <input type="date" id="psv-date" onchange="checkExpirations()">
+                    <div id="psv-status" class="status-badge status-neutral">Not Set</div>
+                </div>
+                <div class="input-group">
+                    <label>E-Hailing Vehicle Permit (EVP) Expiry Date</label>
+                    <input type="date" id="evp-date" onchange="checkExpirations()">
+                    <div id="evp-status" class="status-badge status-neutral">Not Set</div>
+                </div>
+                <button onclick="saveLicenses()">Save License Info</button>
+            </div>
+        </div>
+
+        <!-- SETTINGS VIEW -->
+        <div id="view-settings" class="view-section">
+            <div class="card">
+                <h2 style="margin-top:0;">Data Management</h2>
+                <p style="font-size: 0.9rem; color: #aaa; margin-bottom: 15px;">Starting a new month? Clear your old earnings and expenses here. Your permit dates will remain saved.</p>
+                <button onclick="clearHistory()" style="background: var(--danger); color: white;">Clear History (Earnings & Expenses)</button>
+            </div>
+        </div>
+
+    </div>
+
+    <!-- Fixed Bottom Navigation -->
+    <nav class="bottom-nav">
+        <div id="nav-dashboard" class="nav-item active" onclick="switchTab('dashboard')">🚗<br>Dashboard</div>
+        <div id="nav-licenses" class="nav-item" onclick="switchTab('licenses')">📅<br>Permits</div>
+        <div id="nav-settings" class="nav-item" onclick="switchTab('settings')">⚙️<br>Settings</div>
+    </nav>
+
+    <script src="app.js"></script>
+</body>
+</html>
