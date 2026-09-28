@@ -1,11 +1,13 @@
-const CACHE_NAME = 'gig-tracker-v4';
+const CACHE_NAME = 'gig-tracker-v5';
 
 const ASSETS_TO_CACHE = [
     './',
     './index.html',
     './app.js',
     './manifest.json',
-    'https://cdn.jsdelivr.net/npm/chart.js'
+    'https://cdn.jsdelivr.net/npm/chart.js',
+    './icon-192.png',
+    './icon-512.png'  
 ];
 
 self.addEventListener('install', event => {
